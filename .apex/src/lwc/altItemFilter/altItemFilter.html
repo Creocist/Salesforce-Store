@@ -1,0 +1,32 @@
+<template>
+    <div class="filters">
+        <lightning-button label="All" data-type="All" onclick={handleFilter}></lightning-button>
+        <lightning-button label="Hot" data-type="Hot" onclick={handleFilter}></lightning-button>
+        <lightning-button label="Cold" data-type="Cold" onclick={handleFilter}></lightning-button>
+        <lightning-button label="Dessert" data-type="Dessert" onclick={handleFilter}></lightning-button>
+        <lightning-button label="Drink" data-type="Drink" onclick={handleFilter}></lightning-button>
+    </div>
+
+        <template if:true={items.length}>
+            <div class="slds-grid slds-wrap">
+                <template for:each={items} for:item="it">
+                    <div key={it.Name} class="slds-col slds-size_1-of-3 slds-p-around_small">
+                        <lightning-card title={it.Name} class="item-card">
+                            <div class="slds-p-horizontal_small slds-p-top_small">
+                                <!--<img src={it.Image__c} alt={it.Name} class="item-img" onerror={handleImgError}> -->
+                                <p class="slds-m-top_small slds-text-body_regular">{it.Description__c}</p>
+                            </div>
+                            <div slot="footer" class="slds-align_absolute-center">
+                                <lightning-button label="Details" data-id={it.Id} onclick={openDetails}
+                                                  class="slds-m-right_small"></lightning-button>
+                                <lightning-button variant="brand" label="Add" data-id={it.Id} onclick={handleAddToCart}></lightning-button>
+                            </div>
+                        </lightning-card>
+                    </div>
+                </template>
+            </div>
+        </template>
+    <template if:true={error}>
+        <p>{error}</p>
+    </template>
+</template>

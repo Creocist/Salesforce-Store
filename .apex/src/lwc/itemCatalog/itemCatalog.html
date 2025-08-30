@@ -1,14 +1,17 @@
 <template>
-    <!-- Верхняя панель -->
+    <!-- Header -->
     <lightning-card class="slds-m-bottom_medium">
         <div class="slds-grid slds-wrap slds-p-around_small slds-grid_vertical-align-center">
+
             <div class="slds-col slds-size_1-of-4 slds-p-around_xx-small">
-                <lightning-button variant="brand" label="Create Item" onclick={handleCreateItem}></lightning-button>
+                <template lwc:if={isManager}>
+                        <lightning-button label="Create Item" onclick={handleCreateItem}></lightning-button>
+                </template>
             </div>
 
             <!-- Инфо об аккаунте (если на странице Account) -->
             <div class="slds-col slds-size_1-of-2 slds-p-around_xx-small slds-text-title_caps">
-                <template if:true={accountName}>
+                <template lwc:if={accountName}>
                     Account: <b>{accountName}</b> • No: <b>{accountNumber}</b> • Industry: <b>{accountIndustry}</b>
                 </template>
             </div>
@@ -19,45 +22,24 @@
         </div>
     </lightning-card>
 
-    <!-- Поиск -->
-    <div class="slds-m-bottom_medium">
-        <lightning-input type="search" label="SEARCH" placeholder="Type to search..."
-                         value={searchKey} onchange={handleSearchChange}></lightning-input>
-    </div>
 
     <div class="slds-grid slds-gutters">
-        <!-- Левая колонка: фильтры -->
-        <aside class="slds-col slds-size_1-of-4">
-            <lightning-card title="FILTERS">
-                <div class="slds-p-around_medium">
-                    <div class="slds-text-title_caps slds-m-bottom_small">Type</div>
-                    <lightning-checkbox-group
-                            name="type"
-                            options={typeOptions}
-                            value={selectedTypes}
-                            onchange={handleTypeChange} label="">
-                    </lightning-checkbox-group>
-
-                    <div class="slds-text-title_caps slds-m-vertical_medium">Family</div>
-                    <lightning-checkbox-group
-                            name="family"
-                            options={familyOptions}
-                            value={selectedFamilies}
-                            onchange={handleFamilyChange} label="">
-                    </lightning-checkbox-group>
-                </div>
-            </lightning-card>
-        </aside>
-
-        <!-- Правая колонка: карточки -->
+        <!-- Cards -->
         <section class="slds-col slds-size_3-of-4">
-            <template if:true={items.length}>
+            <!-- Search -->
+
+            <div class="slds-m-bottom_medium">
+                <lightning-input type="search" label="SEARCH" placeholder="Type to search..."
+                                 value={searchKey} onchange={handleSearchChange}></lightning-input>
+            </div>
+
+            <template lwc:if={items.length}>
                 <div class="slds-grid slds-wrap">
                     <template for:each={items} for:item="it">
-                        <div key={it.Id} class="slds-col slds-size_1-of-3 slds-p-around_small">
+                        <div key={it.Name} class="slds-col slds-size_1-of-3 slds-p-around_small">
                             <lightning-card title={it.Name} class="item-card">
                                 <div class="slds-p-horizontal_small slds-p-top_small">
-                                    <img src={it.Image__c} alt={it.Name} class="item-img" onerror={handleImgError}/>
+                                    <img src={it.Image__c} alt={it.Name} class="item-img" onerror={handleImgError}>
                                     <p class="slds-m-top_small slds-text-body_regular">{it.Description__c}</p>
                                 </div>
                                 <div slot="footer" class="slds-align_absolute-center">
@@ -70,7 +52,7 @@
                     </template>
                 </div>
             </template>
-            <template if:false={items.length}>
+            <template lwc:elseif={items.length}>
                 <lightning-card>
                     <div class="slds-p-around_medium slds-text-align_center slds-text-color_weak">
                         No items found. Adjust filters or search.
@@ -78,17 +60,40 @@
                 </lightning-card>
             </template>
         </section>
+
+        <!-- Filters -->
+        <aside class="slds-col slds-size_1-of-4">
+            <lightning-card title="FILTERS">
+                <div class="slds-p-around_medium">
+                    <div class="slds-text-title_caps slds-m-bottom_small">Type</div>
+                    <lightning-checkbox-group
+                            name="type"
+                            options={typeOptions}
+                            value={selectedTypes}
+                            onchange={handleTypeChange}>
+                    </lightning-checkbox-group>
+
+                    <div class="slds-text-title_caps slds-m-vertical_medium">Family</div>
+                    <lightning-checkbox-group
+                            name="family"
+                            options={familyOptions}
+                            value={selectedFamilies}
+                            onchange={handleFamilyChange}>
+                    </lightning-checkbox-group>
+                </div>
+            </lightning-card>
+        </aside>
     </div>
 
-    <!-- Modal: Details -->
-    <template if:true={detailsItem}>
+    <!--  Details -->
+    <template lwc:if={detailsItem}>
         <section class="slds-modal slds-fade-in-open" role="dialog" aria-modal="true">
             <div class="slds-modal__container">
                 <header class="slds-modal__header">
                     <h2 class="slds-text-heading_medium">{detailsItem.Name}</h2>
                 </header>
                 <div class="slds-modal__content slds-p-around_medium">
-                    <img src={detailsItem.Image__c} alt={detailsItem.Name} class="item-img slds-m-bottom_medium" onerror={handleImgError}/>
+                    <img src={detailsItem.Image__c} alt={detailsItem.Name} class="item-img slds-m-bottom_medium" onerror={handleImgError}>
                     <p>{detailsItem.Description__c}</p>
                     <p class="slds-m-top_small"><b>Type:</b> {detailsItem.Type__c} • <b>Family:</b> {detailsItem.Family__c}</p>
                     <p class="slds-m-top_small"><b>Price:</b> {detailsItem.Price__c}</p>
@@ -104,17 +109,17 @@
     </template>
 
     <!-- Modal: Cart -->
-    <template if:true={cartOpen}>
+    <template lwc:if={cartOpen}>
         <section class="slds-modal slds-fade-in-open" role="dialog" aria-modal="true">
             <div class="slds-modal__container">
                 <header class="slds-modal__header">
                     <h2 class="slds-text-heading_medium">Cart ({cartCount})</h2>
                 </header>
                 <div class="slds-modal__content slds-p-around_medium">
-                    <template if:true={cart.length}>
+                    <template lwc:if={cart.length}>
                         <ul class="slds-has-dividers_around-space">
                             <template for:each={cart} for:item="ci">
-                                <li key={ci.Id} class="slds-item">
+                                <li key={ci.Name} class="slds-item">
                                     <b>{ci.Name}</b> — qty: {ci.qty}
                                     <lightning-button-icon icon-name="utility:add" class="slds-m-left_small"
                                                            data-id={ci.Id} onclick={incQty} alternative-text="+"></lightning-button-icon>
@@ -124,7 +129,7 @@
                             </template>
                         </ul>
                     </template>
-                    <template if:false={cart.length}>
+                    <template lwc:elseif={cart.length}>
                         Empty cart.
                     </template>
                 </div>

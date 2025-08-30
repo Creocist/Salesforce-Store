@@ -1,12 +1,17 @@
 import { LightningElement, api, wire, track } from 'lwc';
 import { NavigationMixin } from 'lightning/navigation';
-import searchItems from '@salesforce/apex/ItemsClass.getItemsByType';
+import searchItems from '@salesforce/apex/ItemClass.searchItems';
+
 
 // Picklists via UI API
 import { getObjectInfo, getPicklistValues } from 'lightning/uiObjectInfoApi';
 import ITEM_OBJECT from '@salesforce/schema/Item__c';
 import TYPE_FIELD from '@salesforce/schema/Item__c.Type__c';
 import FAMILY_FIELD from '@salesforce/schema/Item__c.Family__c';
+
+//User
+import USER_ID from '@salesforce/user/Id';
+import IS_MANAGER_FIELD from '@salesforce/schema/User.IsManager__c';
 
 // Account header (if on Account record page)
 import { getRecord } from 'lightning/uiRecordApi';
@@ -15,7 +20,6 @@ import ACCOUNT_NUMBER from '@salesforce/schema/Account.AccountNumber';
 import ACCOUNT_INDUSTRY from '@salesforce/schema/Account.Industry';
 
 export default class ItemCatalog extends NavigationMixin(LightningElement) {
-    // recordId comes automatically on Record Page (e.g., Account)
     @api recordId;
 
     // State
@@ -25,6 +29,7 @@ export default class ItemCatalog extends NavigationMixin(LightningElement) {
     selectedFamilies = [];
     limitSize = 24;
     offsetSize = 0;
+    isManager = false;
 
     // Cart
     cart = [];
@@ -32,6 +37,17 @@ export default class ItemCatalog extends NavigationMixin(LightningElement) {
 
     // Details modal
     detailsId;
+
+
+    //User
+    @wire(getRecord, { recordId: USER_ID, fields: [IS_MANAGER_FIELD] })
+    wiredUser({ error, data }) {
+        if (data) {
+            this.isManager = data.fields.IsManager__c.value;
+        } else if (error) {
+            console.error('Error loading user data', error);
+        }
+    }
 
     // --- Picklists
     @wire(getObjectInfo, { objectApiName: ITEM_OBJECT }) objectInfo;
@@ -93,7 +109,6 @@ export default class ItemCatalog extends NavigationMixin(LightningElement) {
         this.fetchItems();
     }
 
-    // Debounce to avoid too many server calls while typing
     _debounce;
     fetchItemsDebounced() {
         clearTimeout(this._debounce);
@@ -112,7 +127,7 @@ export default class ItemCatalog extends NavigationMixin(LightningElement) {
         .catch(err => { console.error(err); this.items = []; });
     }
 
-    // Images may be broken; show placeholder
+    // Images placeholder
     handleImgError(event) {
         event.target.src = 'https://via.placeholder.com/600x400?text=No+Image';
     }

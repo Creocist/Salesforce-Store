@@ -1,0 +1,9 @@
+{
+  "name": "Test Project",
+  "version": "1.0.0",
+  "dependencies": {
+    "@salesforce/apex": "^0.0.21",
+    "@salesforce/schema": "^0.0.21",
+    "lightning": "^10.26.2"
+  }
+}
