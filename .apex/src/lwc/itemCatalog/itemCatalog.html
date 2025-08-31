@@ -4,15 +4,20 @@
         <div class="slds-grid slds-wrap slds-p-around_small slds-grid_vertical-align-center">
 
             <div class="slds-col slds-size_1-of-4 slds-p-around_xx-small">
-                <template lwc:if={isManager}>
-                        <lightning-button label="Create Item" onclick={handleCreateItem}></lightning-button>
+                <template if:true={isManager}>
+                        <lightning-button label="Create items" onclick={handleCreateItem}></lightning-button>
                 </template>
             </div>
 
-            <!-- Инфо об аккаунте (если на странице Account) -->
+            <!-- Account -->
             <div class="slds-col slds-size_1-of-2 slds-p-around_xx-small slds-text-title_caps">
-                <template lwc:if={accountName}>
-                    Account: <b>{accountName}</b> • No: <b>{accountNumber}</b> • Industry: <b>{accountIndustry}</b>
+                <template if:true={account.data}>
+                    <div class="slds-m-around_medium">
+                        Account: <b>{accountName}</b> • No: <b>{accountNumber}</b> • Industry: <b>{accountIndustry}</b>
+                    </div>
+                </template>
+                <template if:true={account.error}>
+                    <p class="slds-text-color_error">Account Error</p>
                 </template>
             </div>
 
@@ -33,7 +38,7 @@
                                  value={searchKey} onchange={handleSearchChange}></lightning-input>
             </div>
 
-            <template lwc:if={items.length}>
+            <template if:true={items.length}>
                 <div class="slds-grid slds-wrap">
                     <template for:each={items} for:item="it">
                         <div key={it.Name} class="slds-col slds-size_1-of-3 slds-p-around_small">
@@ -52,7 +57,7 @@
                     </template>
                 </div>
             </template>
-            <template lwc:elseif={items.length}>
+            <template if:false={items.length}>
                 <lightning-card>
                     <div class="slds-p-around_medium slds-text-align_center slds-text-color_weak">
                         No items found. Adjust filters or search.
@@ -86,7 +91,7 @@
     </div>
 
     <!--  Details -->
-    <template lwc:if={detailsItem}>
+    <template if:true={detailsItem}>
         <section class="slds-modal slds-fade-in-open" role="dialog" aria-modal="true">
             <div class="slds-modal__container">
                 <header class="slds-modal__header">
@@ -109,14 +114,14 @@
     </template>
 
     <!-- Modal: Cart -->
-    <template lwc:if={cartOpen}>
+    <template if:true={cartOpen}>
         <section class="slds-modal slds-fade-in-open" role="dialog" aria-modal="true">
             <div class="slds-modal__container">
                 <header class="slds-modal__header">
                     <h2 class="slds-text-heading_medium">Cart ({cartCount})</h2>
                 </header>
                 <div class="slds-modal__content slds-p-around_medium">
-                    <template lwc:if={cart.length}>
+                    <template if:true={cart.length}>
                         <ul class="slds-has-dividers_around-space">
                             <template for:each={cart} for:item="ci">
                                 <li key={ci.Name} class="slds-item">
@@ -129,7 +134,7 @@
                             </template>
                         </ul>
                     </template>
-                    <template lwc:elseif={cart.length}>
+                    <template if:false= {cart.length}>
                         Empty cart.
                     </template>
                 </div>

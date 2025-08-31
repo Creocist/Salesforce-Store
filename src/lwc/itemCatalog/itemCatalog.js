@@ -1,7 +1,7 @@
-import { LightningElement, api, wire, track } from 'lwc';
-import { NavigationMixin } from 'lightning/navigation';
+import { LightningElement, wire, track } from 'lwc';
+import { NavigationMixin, CurrentPageReference } from 'lightning/navigation';
 import searchItems from '@salesforce/apex/ItemClass.searchItems';
-
+import { getRecord, getFieldValue } from 'lightning/uiRecordApi';
 
 // Picklists via UI API
 import { getObjectInfo, getPicklistValues } from 'lightning/uiObjectInfoApi';
@@ -14,13 +14,12 @@ import USER_ID from '@salesforce/user/Id';
 import IS_MANAGER_FIELD from '@salesforce/schema/User.IsManager__c';
 
 // Account header (if on Account record page)
-import { getRecord } from 'lightning/uiRecordApi';
-import ACCOUNT_NAME from '@salesforce/schema/Account.Name';
-import ACCOUNT_NUMBER from '@salesforce/schema/Account.AccountNumber';
-import ACCOUNT_INDUSTRY from '@salesforce/schema/Account.Industry';
-
+import NAME_FIELD from '@salesforce/schema/Account.Name';
+import NUMBER_FIELD from '@salesforce/schema/Account.AccountNumber';
+import INDUSTRY_FIELD from '@salesforce/schema/Account.Industry';
 export default class ItemCatalog extends NavigationMixin(LightningElement) {
-    @api recordId;
+    //Account
+    accountId;
 
     // State
     items = [];
@@ -69,12 +68,26 @@ export default class ItemCatalog extends NavigationMixin(LightningElement) {
     }
 
     // --- Account header
-    @wire(getRecord, { recordId: '$recordId', fields: [ACCOUNT_NAME, ACCOUNT_NUMBER, ACCOUNT_INDUSTRY] })
+    @wire(CurrentPageReference)
+    getPageRef(pageRef) {
+        if (pageRef && pageRef.state && pageRef.state.c__accountId) {
+            this.accountId = pageRef.state.c__accountId;
+        }
+    }
+    @wire(getRecord, { recordId: '$accountId', fields: [NAME_FIELD, NUMBER_FIELD, INDUSTRY_FIELD] })
     account;
 
-    get accountName()     { return this.account?.data?.fields?.Name?.value; }
-    get accountNumber()   { return this.account?.data?.fields?.AccountNumber?.value; }
-    get accountIndustry() { return this.account?.data?.fields?.Industry?.value; }
+    get accountName() {
+        return getFieldValue(this.account.data, NAME_FIELD);
+    }
+
+    get accountNumber() {
+        return getFieldValue(this.account.data, NUMBER_FIELD);
+    }
+
+    get accountIndustry() {
+        return getFieldValue(this.account.data, INDUSTRY_FIELD);
+    }
 
     // --- Lifecycle
     connectedCallback() {
