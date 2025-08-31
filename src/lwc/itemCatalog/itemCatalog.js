@@ -1,9 +1,11 @@
-import { LightningElement, wire, track } from 'lwc';
+import { LightningElement,api, wire, track } from 'lwc';
 import { NavigationMixin, CurrentPageReference } from 'lightning/navigation';
 import searchItems from '@salesforce/apex/ItemClass.searchItems';
+import checkout from '@salesforce/apex/CheckoutController.checkout';
 import { getRecord, getFieldValue } from 'lightning/uiRecordApi';
+import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
-// Picklists via UI API
+// Picklists
 import { getObjectInfo, getPicklistValues } from 'lightning/uiObjectInfoApi';
 import ITEM_OBJECT from '@salesforce/schema/Item__c';
 import TYPE_FIELD from '@salesforce/schema/Item__c.Type__c';
@@ -13,14 +15,13 @@ import FAMILY_FIELD from '@salesforce/schema/Item__c.Family__c';
 import USER_ID from '@salesforce/user/Id';
 import IS_MANAGER_FIELD from '@salesforce/schema/User.IsManager__c';
 
-// Account header (if on Account record page)
+// Account header
 import NAME_FIELD from '@salesforce/schema/Account.Name';
 import NUMBER_FIELD from '@salesforce/schema/Account.AccountNumber';
 import INDUSTRY_FIELD from '@salesforce/schema/Account.Industry';
 export default class ItemCatalog extends NavigationMixin(LightningElement) {
     //Account
     accountId;
-
     // State
     items = [];
     searchKey = '';
@@ -33,12 +34,13 @@ export default class ItemCatalog extends NavigationMixin(LightningElement) {
     // Cart
     cart = [];
     cartOpen = false;
+    isCheckingOut = false;
 
     // Details modal
     detailsId;
 
 
-    //User
+    // --- User
     @wire(getRecord, { recordId: USER_ID, fields: [IS_MANAGER_FIELD] })
     wiredUser({ error, data }) {
         if (data) {
@@ -49,6 +51,7 @@ export default class ItemCatalog extends NavigationMixin(LightningElement) {
     }
 
     // --- Picklists
+
     @wire(getObjectInfo, { objectApiName: ITEM_OBJECT }) objectInfo;
 
     get recordTypeId() {
@@ -76,15 +79,12 @@ export default class ItemCatalog extends NavigationMixin(LightningElement) {
     }
     @wire(getRecord, { recordId: '$accountId', fields: [NAME_FIELD, NUMBER_FIELD, INDUSTRY_FIELD] })
     account;
-
     get accountName() {
         return getFieldValue(this.account.data, NAME_FIELD);
     }
-
     get accountNumber() {
         return getFieldValue(this.account.data, NUMBER_FIELD);
     }
-
     get accountIndustry() {
         return getFieldValue(this.account.data, INDUSTRY_FIELD);
     }
@@ -93,8 +93,6 @@ export default class ItemCatalog extends NavigationMixin(LightningElement) {
     connectedCallback() {
         this.fetchItems(); // initial load (no filters)
     }
-
-    // --- UI computed
     get cartCount() {
         return this.cart.reduce((sum, i) => sum + i.qty, 0);
     }
@@ -140,12 +138,7 @@ export default class ItemCatalog extends NavigationMixin(LightningElement) {
         .catch(err => { console.error(err); this.items = []; });
     }
 
-    // Images placeholder
-    handleImgError(event) {
-        event.target.src = 'https://via.placeholder.com/600x400?text=No+Image';
-    }
-
-    // Details modal
+    // Details
     openDetails = (e) => { this.detailsId = e.currentTarget.dataset.id; };
     closeDetails = () => { this.detailsId = undefined; };
 
@@ -173,8 +166,55 @@ export default class ItemCatalog extends NavigationMixin(LightningElement) {
             this.cart = [...this.cart];
         }
     };
+    //Checkout
+    async handleCheckout() {
+        // Basic guards
+        if (!this.accountId) {
+            this.showToast('Error', 'Account not provided. Open shop from an Account or pass accountId.', 'error');
+            return;
+        }
+        if (!this.cart || this.cart.length === 0) {
+            this.showToast('Info', 'Cart is empty.', 'info');
+            return;
+        }
+        if (this.isCheckingOut) return;
 
-    // Create Item (standard new-record page)
+        const lines = this.cart.map(c => {
+            return {
+                itemId: c.Id.toString(),
+                qty: c.qty
+            };
+        });
+
+        this.isCheckingOut = true;
+        try {
+            const purchaseId = await checkout({ accountId: this.accountId, lines });
+
+            this.cart = [];
+            this.showToast('Success', 'Purchase created', 'success');
+
+            this[NavigationMixin.Navigate]({
+                type: 'standard__recordPage',
+                attributes: {
+                    recordId: purchaseId,
+                    objectApiName: 'Purchase__c',
+                    actionName: 'view'
+                }
+            });
+        } catch (err) {
+            const message = this.extractErrorMessage(err);
+            this.showToast('Checkout failed', message, 'error');
+            console.error('Checkout error', err);
+        } finally {
+            this.isCheckingOut = false;
+        }
+
+    }
+    showToast(title, message, variant = 'info') {
+        this.dispatchEvent(new ShowToastEvent({ title, message, variant }));
+    }
+
+    // Create Item
     handleCreateItem() {
         this[NavigationMixin.Navigate]({
             type: 'standard__objectPage',
@@ -183,5 +223,11 @@ export default class ItemCatalog extends NavigationMixin(LightningElement) {
                 actionName: 'new'
             }
         });
+    }
+
+    extractErrorMessage(error) {
+        if (!error) return 'Unknown error';
+        if (error.body && error.body.message) return error.body.message;
+        return (error.message) ? error.message : JSON.stringify(error);
     }
 }

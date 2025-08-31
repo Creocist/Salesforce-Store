@@ -8,8 +8,12 @@
     <label>Approvals</label>
     <navType>Console</navType>
     <tabs>standard-ApprovalsHome</tabs>
+    <tabs>Purchase_Page1</tabs>
     <uiType>Lightning</uiType>
     <workspaceConfig>
+        <mappings>
+            <tab>Purchase_Page1</tab>
+        </mappings>
         <mappings>
             <tab>standard-ApprovalsHome</tab>
         </mappings>

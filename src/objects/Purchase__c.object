@@ -154,9 +154,9 @@
     <enableStreamingApi>true</enableStreamingApi>
     <externalSharingModel>Private</externalSharingModel>
     <fields>
-        <fullName>Account__c</fullName>
+        <fullName>ClientId__c</fullName>
         <deleteConstraint>Restrict</deleteConstraint>
-        <label>Account</label>
+        <label>ClientId</label>
         <referenceTo>Account</referenceTo>
         <relationshipLabel>Purchases</relationshipLabel>
         <relationshipName>Purchases</relationshipName>
