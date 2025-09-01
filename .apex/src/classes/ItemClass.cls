@@ -29,7 +29,7 @@ public with sharing class ItemClass {
 
         String soql = base + (whereParts.isEmpty() ? '' : ' WHERE ' + String.join(whereParts, ' AND '))
                 + ' ORDER BY Name LIMIT :limitSize OFFSET :offsetSize';
-
+        System.debug('Testing logs ');
         return Database.query(soql);
     }
 }

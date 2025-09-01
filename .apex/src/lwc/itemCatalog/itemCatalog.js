@@ -32,9 +32,10 @@ export default class ItemCatalog extends NavigationMixin(LightningElement) {
     isManager = false;
 
     // Cart
-    cart = [];
+    @track cart = [];
     cartOpen = false;
     isCheckingOut = false;
+
 
     // Details modal
     detailsId;
@@ -168,9 +169,8 @@ export default class ItemCatalog extends NavigationMixin(LightningElement) {
     };
     //Checkout
     async handleCheckout() {
-        // Basic guards
         if (!this.accountId) {
-            this.showToast('Error', 'Account not provided. Open shop from an Account or pass accountId.', 'error');
+            this.showToast('Error', 'Account not provided.', 'error');
             return;
         }
         if (!this.cart || this.cart.length === 0) {
@@ -179,16 +179,18 @@ export default class ItemCatalog extends NavigationMixin(LightningElement) {
         }
         if (this.isCheckingOut) return;
 
-        const lines = this.cart.map(c => {
-            return {
-                itemId: c.Id.toString(),
-                qty: c.qty
-            };
-        });
-
         this.isCheckingOut = true;
         try {
-            const purchaseId = await checkout({ accountId: this.accountId, lines });
+            const lines = this.cart.map(c => ({
+                itemId: String(c.Id),
+                qty: parseInt(c.qty, 10)
+            }));
+
+            console.log( JSON.stringify({ accountId: this.accountId, lines }));
+            const purchaseId = await checkout({
+                accountId: this.accountId,
+                lines: lines
+            });
 
             this.cart = [];
             this.showToast('Success', 'Purchase created', 'success');
@@ -202,13 +204,11 @@ export default class ItemCatalog extends NavigationMixin(LightningElement) {
                 }
             });
         } catch (err) {
-            const message = this.extractErrorMessage(err);
-            this.showToast('Checkout failed', message, 'error');
             console.error('Checkout error', err);
+            this.showToast('Checkout failed', this.extractErrorMessage(err), 'error');
         } finally {
             this.isCheckingOut = false;
         }
-
     }
     showToast(title, message, variant = 'info') {
         this.dispatchEvent(new ShowToastEvent({ title, message, variant }));

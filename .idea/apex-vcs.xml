@@ -2,15 +2,11 @@
 <project version="4">
   <component name="ApexVcsIndex">
     <index-record>
-      <option name="path" value="/src/classes/GetBookTest.cls-meta.xml" />
-      <option name="type" value="DELETED" />
-    </index-record>
-    <index-record>
       <option name="path" value="/src/classes/GetBookTest.cls" />
       <option name="type" value="DELETED" />
     </index-record>
     <index-record>
-      <option name="path" value="/src/tabs/Purchase_Page1.tab" />
+      <option name="path" value="/src/classes/GetBookTest.cls-meta.xml" />
       <option name="type" value="DELETED" />
     </index-record>
   </component>

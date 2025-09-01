@@ -27,7 +27,6 @@
         </div>
     </lightning-card>
 
-
     <div class="slds-grid slds-gutters">
         <!-- Cards -->
         <section class="slds-col slds-size_3-of-4">
@@ -41,7 +40,7 @@
             <template if:true={items.length}>
                 <div class="slds-grid slds-wrap">
                     <template for:each={items} for:item="it">
-                        <div key={it.Name} class="slds-col slds-size_1-of-3 slds-p-around_small">
+                        <div key={it.Id} class="slds-col slds-size_1-of-3 slds-p-around_small">
                             <lightning-card title={it.Name} class="item-card">
                                 <div class="slds-p-horizontal_small slds-p-top_small">
                                     <img src={it.Image__c} alt={it.Name} class="item-img">
@@ -124,7 +123,7 @@
                     <template if:true={cart.length}>
                         <ul class="slds-has-dividers_around-space">
                             <template for:each={cart} for:item="ci">
-                                <li key={ci.Name} class="slds-item">
+                                <li key={ci.Id} class="slds-item">
                                     <b>{ci.Name}</b> — qty: {ci.qty}
                                     <lightning-button-icon icon-name="utility:add" class="slds-m-left_small"
                                                            data-id={ci.Id} onclick={incQty} alternative-text="+"></lightning-button-icon>
@@ -134,7 +133,7 @@
                             </template>
                         </ul>
                     </template>
-                    <template if:false= {cart.length}>
+                    <template if:false={cart.length}>
                         Empty cart.
                     </template>
                 </div>
