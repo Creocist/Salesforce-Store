@@ -1,6 +1,7 @@
 import { LightningElement,api, wire, track } from 'lwc';
 import { NavigationMixin, CurrentPageReference } from 'lightning/navigation';
 import searchItems from '@salesforce/apex/ItemClass.searchItems';
+import ItemsWithImages from '@salesforce/apex/GetImageItem.ItemsWithImages';
 import checkout from '@salesforce/apex/CheckoutController.checkout';
 import { getRecord, getFieldValue } from 'lightning/uiRecordApi';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
@@ -54,11 +55,9 @@ export default class ItemCatalog extends NavigationMixin(LightningElement) {
     // --- Picklists
 
     @wire(getObjectInfo, { objectApiName: ITEM_OBJECT }) objectInfo;
-
     get recordTypeId() {
         return this.objectInfo?.data?.defaultRecordTypeId || null;
     }
-
     typeOptions = [];
     @wire(getPicklistValues, { recordTypeId: '$recordTypeId', fieldApiName: TYPE_FIELD })
     wiredTypes({ data }) {
@@ -70,6 +69,7 @@ export default class ItemCatalog extends NavigationMixin(LightningElement) {
     wiredFamilies({ data }) {
         if (data) this.familyOptions = data.values.map(v => ({ label: v.label, value: v.value }));
     }
+    // --- Adding Image
 
     // --- Account header
     @wire(CurrentPageReference)
@@ -92,7 +92,15 @@ export default class ItemCatalog extends NavigationMixin(LightningElement) {
 
     // --- Lifecycle
     connectedCallback() {
-        this.fetchItems(); // initial load (no filters)
+        this.fetchItems();
+        ItemsWithImages()
+            .then(() => {
+                console.log('Images updated successfully');
+                this.fetchItems();
+            })
+            .catch(error => {
+                console.error('Error updating images', error);
+            });
     }
     get cartCount() {
         return this.cart.reduce((sum, i) => sum + i.qty, 0);

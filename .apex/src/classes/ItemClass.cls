@@ -7,7 +7,6 @@ public with sharing class ItemClass {
             Integer limitSize,
             Integer offsetSize
     ) {
-
         // sane defaults
         if (limitSize == null || limitSize <= 0 || limitSize > 2000) limitSize = 50;
         if (offsetSize == null || offsetSize < 0) offsetSize = 0;
@@ -32,4 +31,5 @@ public with sharing class ItemClass {
         System.debug('Testing logs ');
         return Database.query(soql);
     }
+
 }
