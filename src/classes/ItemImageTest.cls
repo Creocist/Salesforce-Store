@@ -13,5 +13,6 @@ private class ItemImageTest {
 		Test.stopTest();
 		Item__c It = [SELECT Id, Image__c FROM Item__c WHERE Name='B1'];
 		System.assertEquals('https://test.com/fake.jpg',It.Image__c);
+		UnsplashService.fakeUrl = null;
 	}
 }
